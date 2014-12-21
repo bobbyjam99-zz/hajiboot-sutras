@@ -1,9 +1,6 @@
 package com.example;
 
-import com.example.app.AddCalculator;
-import com.example.app.ArgumentResolver;
-import com.example.app.Calculator;
-import com.example.app.ScannerArgumentResolver;
+import com.example.app.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,5 +15,10 @@ public class AppConfig {
     @Bean
     ArgumentResolver argumentResolver() {
         return new ScannerArgumentResolver();
+    }
+
+    @Bean
+    Frontend frontend() {
+        return new Frontend();
     }
 }
