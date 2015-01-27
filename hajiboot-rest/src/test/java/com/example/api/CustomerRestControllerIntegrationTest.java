@@ -3,8 +3,6 @@ package com.example.api;
 import com.example.App;
 import com.example.domain.Customer;
 import com.example.repository.CustomerRepository;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +12,7 @@ import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +20,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -75,10 +76,33 @@ public class CustomerRestControllerIntegrationTest {
         assertThat(c2.getLastName(), is(customer1.getLastName()));
     }
 
-    @Data
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class Page<T> {
-        private List<T> content;
-        private int numberOfElements;
+    @Test
+    public void testPostCustomers() throws Exception {
+        Customer customer3 = new Customer();
+        customer3.setFirstName("Nobita");
+        customer3.setLastName("Nobi");
+
+        ResponseEntity<Customer> response = restTemplate.exchange(apiEndpoint,
+                HttpMethod.POST, new HttpEntity<>(customer3), Customer.class);
+        assertThat(response.getStatusCode(), is(HttpStatus.CREATED));
+        Customer customer = response.getBody();
+        assertThat(customer.getId(), is(notNullValue()));
+        assertThat(customer.getFirstName(), is(customer3.getFirstName()));
+        assertThat(customer.getLastName(), is(customer3.getLastName()));
+
+        assertThat(restTemplate.exchange(
+                apiEndpoint, HttpMethod.GET, null, new ParameterizedTypeReference<List<Customer>>() {
+                }).getBody().size(), is(3));
+    }
+
+    @Test
+    public void testDeleteCustomers() throws Exception {
+        ResponseEntity<Void> response = restTemplate.exchange(apiEndpoint + "/{id}",
+                HttpMethod.DELETE, null, Void.class, Collections.singletonMap("id", customer1.getId()));
+        assertThat(response.getStatusCode(), is(HttpStatus.NO_CONTENT));
+
+        assertThat(restTemplate.exchange(
+                apiEndpoint, HttpMethod.GET, null, new ParameterizedTypeReference<List<Customer>>() {
+                }).getBody().size(), is(1));
     }
 }
