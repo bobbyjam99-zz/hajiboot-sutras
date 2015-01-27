@@ -76,4 +76,8 @@ public class CustomerRepository {
         SqlParameterSource param = new MapSqlParameterSource().addValue("id", id);
         jdbcTemplate.update("DELETE FROM customers WHERE id=:id", param);
     }
+
+    public void deleteAll() {
+        jdbcTemplate.update("DELETE FROM customers", (SqlParameterSource) null);
+    }
 }
